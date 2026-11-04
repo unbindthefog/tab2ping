@@ -69,12 +69,16 @@ function run(win) {
   timer = timerWin.setInterval(tick, 1000);
 }
 
-el.pin.addEventListener('click', async () => {
+// Opened under the mouse right after the click on BROWSER: the next click anywhere pins it.
+async function pin() {
+  if (!el.app.classList.contains('unpinned')) return;
+  el.app.classList.remove('unpinned');
   let pip;
   try {
     pip = await documentPictureInPicture.requestWindow({ width: innerWidth, height: innerHeight });
   } catch {
-    return;   // e.g. another picture-in-picture window is open; the pin stays
+    el.app.classList.add('unpinned');   // e.g. another picture-in-picture window is open: try again
+    return;
   }
   pip.document.title = document.title;
   // The picture-in-picture document is about:blank: the stylesheet needs its full address there.
@@ -96,6 +100,12 @@ el.pin.addEventListener('click', async () => {
   // The window behind it isn't needed while pinned; closing the pinned window ends everything.
   chrome.windows.getCurrent().then(w => chrome.windows.update(w.id, { state: 'minimized' }));
   pip.addEventListener('pagehide', () => window.close());
+}
+document.addEventListener('click', pin);
+document.addEventListener('keydown', e => {   // a key press is a user activation too
+  if (e.repeat || (e.key !== 'Enter' && e.key !== ' ')) return;
+  e.preventDefault();
+  pin();
 });
 
 autoKnown.finally(() => { tick(); run(window); });

@@ -65,16 +65,21 @@ async function init() {
   setInterval(tick, 1000);
 }
 
-// A small window with the results; it can be pinned on top from there. Placed top right on the
-// screen the popup is on.
-$('browser').addEventListener('click', async () => {
+// A small window with the results, centred under the mouse: the next click there pins it on top
+// (only a click in that window may open the pinned window, see ping.js).
+$('browser').addEventListener('click', async e => {
   $('browser').disabled = true;   // one window per click
   const params = new URLSearchParams({ host: target.host, origin: target.origin });
   const width = 340, height = 260;
   try {
+    const left0 = screen.availLeft ?? 0, top0 = screen.availTop ?? 0;
+    const clamp = (v, min, size, avail) => Math.round(Math.min(Math.max(v, min), min + avail - size));
+    // Started from the keyboard (no mouse position): centre of the screen instead.
+    const x = e.detail ? e.screenX : left0 + screen.availWidth / 2, y = e.detail ? e.screenY : top0 + screen.availHeight / 2;
     await chrome.windows.create({
       url: 'ping.html?' + params, type: 'popup', width, height,
-      left: (screen.availLeft ?? 0) + screen.availWidth - width - 20, top: (screen.availTop ?? 0) + 40,
+      left: clamp(x - width / 2, left0, width, screen.availWidth),
+      top: clamp(y - height / 2, top0, height, screen.availHeight),
     });
     window.close();
   } catch {
