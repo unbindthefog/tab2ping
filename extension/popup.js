@@ -37,13 +37,12 @@ function shellHost(host) {
   return /^[A-Za-z0-9._:-]+$/.test(h) && !h.startsWith('-') ? h : null;   // '-f' would be an option
 }
 
-// AUTO keys: the lamp shows ON (green) or OFF (red), as in tab2tv.
+// AUTO under each key: green when on, dim when off. An open ping window follows the change at once.
 const auto = { autoBrowser: true, autoTerminal: false };
 function showAuto() {
   for (const k of Object.keys(auto)) {
-    const lamp = $(k + 'Lamp');
-    lamp.textContent = auto[k] ? 'ON' : 'OFF';
-    lamp.className = 'lamp ' + (auto[k] ? 'on' : 'off');
+    $(k).classList.toggle('on', auto[k]);
+    $(k).setAttribute('aria-pressed', String(auto[k]));
   }
 }
 for (const k of Object.keys(auto)) {
@@ -70,7 +69,7 @@ async function init() {
 // screen the popup is on.
 $('browser').addEventListener('click', async () => {
   $('browser').disabled = true;   // one window per click
-  const params = new URLSearchParams({ auto: auto.autoBrowser ? '1' : '', host: target.host, origin: target.origin });
+  const params = new URLSearchParams({ host: target.host, origin: target.origin });
   const width = 340, height = 260;
   try {
     await chrome.windows.create({

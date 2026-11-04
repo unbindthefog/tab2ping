@@ -1,9 +1,10 @@
-// Ping window: one line per second, like ping in a terminal. With auto it follows the web page the
-// user looks at. The pin moves the content into a picture-in-picture window, the only kind of
+// Ping window: one line per second, like ping in a terminal. With AUTO (switched under the BROWSER
+// key, takes effect at once) it follows the web page the user looks at; without, it stays on the
+// host it shows. The pin moves the content into a picture-in-picture window, the only kind of
 // window a page may keep on top of all others.
 const params = new URLSearchParams(location.search);
-const auto = !!params.get('auto');
-const startTarget = { host: params.get('host'), origin: params.get('origin') };
+let auto = true;
+let held = { host: params.get('host'), origin: params.get('origin') };   // the host kept without AUTO
 // References kept: once pinned, the elements live in the other window's document.
 const el = Object.fromEntries(['app', 'dot', 'host', 'follow', 'pin', 'log', 'sheet', 'style'].map(id => [id, document.getElementById(id)]));
 const LABELS = { up: 'antwortet', error: 'Fehler', timeout: 'Zeitüberschreitung' };
@@ -14,7 +15,14 @@ let timerWin = window;   // whose timer runs the probes (the pinned window stays
 let timer = null;
 let busy = false;        // a probe can take up to 2 s: no second one meanwhile
 
-el.follow.textContent = auto ? 'auto' : '';
+function showAuto() { el.follow.textContent = auto ? 'auto' : ''; }
+// Probing starts once AUTO is known, so the first line already has the right host.
+const autoKnown = chrome.storage.local.get({ autoBrowser: true }).then(s => { auto = s.autoBrowser; showAuto(); });
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'local' || !('autoBrowser' in changes)) return;
+  auto = changes.autoBrowser.newValue;
+  showAuto();
+});
 
 function line(cls, html) {
   const log = el.log;
@@ -34,7 +42,7 @@ async function tick() {
   busy = true;
   let r = null;
   try {
-    r = await chrome.runtime.sendMessage({ type: 'probe', auto, target: startTarget });
+    r = await chrome.runtime.sendMessage({ type: 'probe', auto, target: held });
   } catch {
     // e.g. the extension was reloaded: this window can't ask any more
   } finally {
@@ -44,6 +52,7 @@ async function tick() {
   if (r.target.origin !== shownOrigin) {
     if (shownOrigin) line('sep', '→ ' + esc(r.target.host));
     shownOrigin = r.target.origin;
+    held = r.target;   // switching AUTO off keeps the host shown now
     el.host.textContent = r.target.host;
     el.app.ownerDocument.title = document.title = 'tab2ping – ' + r.target.host;
   }
@@ -89,5 +98,4 @@ el.pin.addEventListener('click', async () => {
   pip.addEventListener('pagehide', () => window.close());
 });
 
-tick();
-run(window);
+autoKnown.finally(() => { tick(); run(window); });

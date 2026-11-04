@@ -13,18 +13,29 @@
   .dot.up { background: var(--on); } .dot.error { background: var(--info); } .dot.timeout { background: var(--off); }
   #host { font-weight: 600; color: var(--strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
   #ms { color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  /* AUTO belongs to the key above it: a slim strip attached to the key, recessed, small legend. */
+  .unit { display: flex; flex-direction: column; }
+  .sub { font: 600 8px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; height: 18px;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    color: var(--muted); background: var(--bg); border: 1px solid var(--border); border-top: 0; border-radius: 0; cursor: pointer; }
+  .sub:hover { color: var(--strong); }
+  .sub.on { color: var(--on); }
   #note { margin: 8px 2px 0; color: var(--text); }
   #note:empty { display: none; }
 </style>
 </head>
 <body>
 <div class="status"><span class="dot" id="dot"></span><span id="host">…</span><span id="ms"></span></div>
-<!-- One column per way of pinging: the way on top, its AUTO key below. -->
+<!-- Two ways of pinging, each with its AUTO (follow the active tab) attached below. -->
 <div class="panel">
-  <button class="key" id="browser" type="button" title="Ping-Fenster öffnen">BROWSER<span class="lamp" id="browserLamp"></span></button>
-  <button class="key" id="terminal" type="button" title="Ping im Terminal">TERMINAL<span class="lamp" id="terminalLamp"></span></button>
-  <button class="key" id="autoBrowser" type="button" title="Ping-Fenster folgt dem aktiven Tab">AUTO<span class="lamp" id="autoBrowserLamp"></span></button>
-  <button class="key" id="autoTerminal" type="button" title="Terminal folgt dem aktiven Tab (braucht den Helfer)">AUTO<span class="lamp" id="autoTerminalLamp"></span></button>
+  <div class="unit">
+    <button class="key" id="browser" type="button" title="Ping-Fenster öffnen">BROWSER<span class="lamp" id="browserLamp"></span></button>
+    <button class="sub" id="autoBrowser" type="button" title="Ping-Fenster folgt dem aktiven Tab">AUTO</button>
+  </div>
+  <div class="unit">
+    <button class="key" id="terminal" type="button" title="Ping im Terminal">TERMINAL<span class="lamp" id="terminalLamp"></span></button>
+    <button class="sub" id="autoTerminal" type="button" title="Terminal folgt dem aktiven Tab (braucht den Helfer)">AUTO</button>
+  </div>
 </div>
 <div id="note"></div>
 <footer class="footer"><h1>tab2ping</h1><span class="version" id="version"></span></footer>
