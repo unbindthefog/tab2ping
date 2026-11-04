@@ -1,0 +1,66 @@
+#!/bin/sh
+# tab2ping helper installer, attached to each release (tools/make-release.sh fills in version and
+# checksum). For this macOS account, no admin rights:
+#   curl -fsSL https://github.com/unbindthefog/tab2ping/releases/latest/download/install.sh | sh
+# Remove again:
+#   curl -fsSL https://github.com/unbindthefog/tab2ping/releases/latest/download/install.sh | sh -s -- --uninstall
+set -eu
+
+VERSION="@VERSION@"
+SHA256="@SHA256@"
+URL="https://github.com/unbindthefog/tab2ping/releases/download/v$VERSION/tab2ping-helper"
+NAME=com.unbindthefog.tab2ping
+EXTENSION_ID=edkjcikcbhfepbdpkkpangmljbhknblc
+SUPPORT="${HOME:?}/Library/Application Support"
+DEST="$SUPPORT/tab2ping"
+
+if [ "$(uname -s)" != Darwin ]; then
+  echo "Der tab2ping-Helfer gibt es bisher nur für macOS." >&2
+  exit 1
+fi
+
+# The per-user folders where the installed browsers look for native messaging hosts.
+browsers() {
+  for b in "BraveSoftware/Brave-Browser" "Google/Chrome" "Microsoft Edge" "Chromium"; do
+    [ -d "$SUPPORT/$b" ] && echo "$SUPPORT/$b/NativeMessagingHosts"
+  done
+  return 0
+}
+
+if [ "${1:-}" = --uninstall ]; then
+  browsers | while IFS= read -r d; do rm -f "$d/$NAME.json"; done
+  rm -rf "$DEST"
+  echo "tab2ping-Helfer entfernt."
+  exit 0
+fi
+
+if [ -z "$(browsers)" ]; then
+  echo "Kein unterstützter Browser gefunden (Brave, Chrome, Edge, Chromium)." >&2
+  exit 1
+fi
+
+mkdir -p "$DEST"
+TMP="$DEST/tab2ping-helper.download"
+trap 'rm -f "$TMP"' EXIT
+curl -fsSL "$URL" -o "$TMP"
+if [ "$(shasum -a 256 "$TMP" | cut -d' ' -f1)" != "$SHA256" ]; then
+  echo "Der heruntergeladene Helfer stimmt nicht mit der Prüfsumme überein; nichts installiert." >&2
+  exit 1
+fi
+chmod 755 "$TMP"
+mv -f "$TMP" "$DEST/tab2ping-helper"
+
+browsers | while IFS= read -r d; do
+  mkdir -p "$d"
+  cat > "$d/$NAME.json" <<EOF
+{
+  "name": "$NAME",
+  "description": "tab2ping helper: ping and Terminal for the tab2ping extension",
+  "path": "$DEST/tab2ping-helper",
+  "type": "stdio",
+  "allowed_origins": ["chrome-extension://$EXTENSION_ID/"]
+}
+EOF
+  echo "angemeldet: $d"
+done
+echo "tab2ping-Helfer $VERSION installiert."
