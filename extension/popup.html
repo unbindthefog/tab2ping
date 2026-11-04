@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>tab2ping</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  /* Palette, keys, lamps and footer: style.css (copied from tab2tv). */
+  body { font: 9px/1.4 var(--mono); width: 173px; margin: 0; padding: 8px; color: var(--text); background: var(--bg); }
+  /* Host of the active tab with its live dot, above the keys. */
+  .status { display: flex; align-items: center; gap: 6px; margin: 0 2px 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--disabled); flex: none; }
+  .dot.up { background: var(--on); } .dot.error { background: var(--info); } .dot.down { background: var(--off); }
+  #host { font-weight: 600; color: var(--strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  #ms { color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  /* AUTO belongs to the key above it: a slim strip attached to the key, recessed, small legend. */
+  .panel { align-items: start; }
+  .unit { display: flex; flex-direction: column; }
+  .sub { font: 600 8px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; height: 18px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); background: var(--bg); border: 1px solid var(--border); border-top: 0; border-radius: 0; cursor: pointer; }
+  .sub:hover { color: var(--strong); }
+  .sub.on { color: var(--on); }
+  #note { margin: 8px 2px 0; color: var(--text); }
+  #note:empty { display: none; }
+  /* Missing helper: the one install line, copied with one click. */
+  #install { margin: 8px 0 0; }
+  #install[hidden] { display: none; }
+  #install p { margin: 0 2px 4px; }
+  #install code { display: block; padding: 5px 6px; color: var(--strong); background: var(--key); border: 1px solid var(--border);
+    word-break: break-all; user-select: all; }
+  #copy { width: 100%; }
+</style>
+</head>
+<body>
+<div class="status"><span class="dot" id="dot"></span><span id="host">…</span><span id="ms"></span></div>
+<div class="panel">
+  <div class="unit">
+    <button class="key" id="browser" type="button" title="Ping-Fenster öffnen">BROWSER<span class="lamp" id="browserLamp"></span></button>
+    <button class="sub" id="auto" type="button" title="Ping-Fenster folgt dem aktiven Tab">AUTO</button>
+  </div>
+  <button class="key" id="terminal" type="button" title="Terminal mit ping öffnen">TERMINAL<span class="lamp" id="terminalLamp"></span></button>
+</div>
+<div id="install" hidden>
+  <p>Für den Ping braucht tab2ping einen kleinen Helfer. Einmal im Terminal ausführen:</p>
+  <code id="command"></code>
+  <button class="sub" id="copy" type="button">KOPIEREN</button>
+</div>
+<div id="note"></div>
+<footer class="footer"><h1>tab2ping</h1><span class="version" id="version"></span></footer>
+<script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>tab2ping</title>
+<link rel="stylesheet" href="style.css" id="sheet">
+<style id="style">
+  /* Fonts and screen colours: style.css (copied from tab2tv). Like the TV screen, the ping window is
+     always dark: the lamp colours are the palette's dark values. */
+  html, body { margin: 0; height: 100%; background: var(--screen-bg); }
+  #app { --on: #3ccf55; --off: #ff7a7a; --info: #e2c048; --dim: #85858b;
+    display: flex; flex-direction: column; height: 100%; color: #dbdbdb; font: 12px/1.45 var(--mono); }
+  header { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #1c1c1d; font-weight: 600; letter-spacing: .04em; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); flex: none; }
+  .up { --c: var(--on); } .error { --c: var(--info); } .down { --c: var(--off); }
+  .dot.up, .dot.error, .dot.down { background: var(--c); }
+  #host { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #e6e6e6; }
+  .tag { color: var(--dim); font-weight: 400; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  /* Until pinned, a click anywhere pins the window; the header says so, quietly. */
+  #app.unpinned { cursor: pointer; }
+  #app.unpinned:hover #pin { color: #e6e6e6; }
+  #log { flex: 1; overflow-y: auto; padding: 6px 10px; }
+  #log div { white-space: nowrap; }
+  #log .t { color: var(--dim); }
+  #log .s { color: var(--c); }
+  #log .sep { color: var(--dim); margin: 4px 0; }
+</style>
+</head>
+<body>
+  <div id="app" class="unpinned">
+    <header>
+      <span class="dot" id="dot"></span><span id="host"></span>
+      <span class="tag" id="follow"></span><span class="tag" id="pin">Klicken zum Anheften</span>
+    </header>
+    <div id="log"></div>
+  </div>
+  <script src="ping.js"></script>
+</body>
+</html>
