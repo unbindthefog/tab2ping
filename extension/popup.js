@@ -18,7 +18,11 @@ $('copy').addEventListener('click', async () => {
   }
 });
 
-$('version').textContent = 'v' + chrome.runtime.getManifest().version;
+// Footer line as in tab2tv: "dev · v0.12 · 1a2b3c4". The version is the manifest's (as on the
+// extensions page, written by .git/hooks/pre-commit), branch and hash come from version.js.
+const v = globalThis.TAB2PING_VERSION;
+const manifestVersion = 'v' + chrome.runtime.getManifest().version;
+$('version').textContent = v ? `${v.branch} · ${manifestVersion} · ${v.commit}` : manifestVersion;
 
 function render(s) {
   helper = s.helper;

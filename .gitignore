@@ -4,3 +4,4 @@ node_modules/
 .claude/worktrees/
 CLAUDE.md
 dist/
+extension/version.js

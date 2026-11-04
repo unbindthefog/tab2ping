@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "tab2ping",
-  "version": "0.2",
+  "version": "0.8",
   "description": "Pingt fortlaufend den Host des aktiven Tabs.",
   "minimum_chrome_version": "116",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmXrWTdEtOuVNL8BwyY/u2UF6t8JmeFc7BTPWWHl1I9kW1Z5mqmQyUngXtsFlMYiP/Xm80ktwL8W85jEppAYH5q1kho59hhN+EpBHrEGbpWV5dRjge5AEsx/4xt3pCLFRHez7U4sKKtD84RXuxX66TPMPESH7uM37zyqqS0ywoQ/8d0YNHTGcqYKnHWqbxjFbHaQhW04zTyfyvZCZo5nAxFQi/xtKSih/KPgKwZdufNTzMVvK1PySqbLEvRAXDfFLWYOtoZ4kj9pNcbKxj006iGS5N4UVsLSDWbQMq3D3WmpEpdTyoXXcio9LAqGjMcpHbb1teZLJ9ostBHJJVv7PZQIDAQAB",
