@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "tab2ping",
+  "version": "0.1",
+  "description": "Zeigt fortlaufend, ob der Host des aktiven Tabs erreichbar ist.",
+  "minimum_chrome_version": "116",
+  "permissions": ["tabs", "storage", "alarms"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "tab2ping", "default_popup": "popup.html" }
+}

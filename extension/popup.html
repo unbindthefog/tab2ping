@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<style>
+  :root { --bg: #fff; --fg: #1d1d1f; --muted: #6e6e73; --line: #d2d2d7; --key: #f2f2f4; --on: #2e9e44; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1e1e20; --fg: #f2f2f4; --muted: #9a9aa0; --line: #3a3a3e; --key: #2c2c2f; }
+  }
+  body { margin: 0; width: 260px; background: var(--bg); color: var(--fg); font: 13px/1.4 system-ui, sans-serif; }
+  header { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: #9a9a9a; flex: none; }
+  .dot.up { background: #2e9e44; } .dot.error { background: #e08a00; } .dot.timeout { background: #d43c2f; }
+  #host { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  #ms { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .row { display: flex; align-items: center; gap: 8px; padding: 10px 14px; }
+  .row + .row { border-top: 1px solid var(--line); }
+  button.main { flex: 1; padding: 8px 10px; border: 0; border-radius: 8px; background: var(--key); color: var(--fg);
+    font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
+  button.main:disabled { color: var(--muted); cursor: default; }
+  label.auto { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 11px; font-weight: 600; cursor: pointer; }
+  label.auto input { display: none; }
+  label.auto .sw { width: 28px; height: 16px; border-radius: 8px; background: var(--line); position: relative; transition: background .15s; }
+  label.auto .sw::after { content: ''; position: absolute; left: 2px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; transition: left .15s; }
+  label.auto input:checked + .sw { background: var(--on); }
+  label.auto input:checked + .sw::after { left: 14px; }
+  #note { padding: 0 14px 12px; color: var(--muted); font-size: 11px; min-height: 0; }
+  #note:empty { display: none; }
+</style>
+</head>
+<body>
+  <header><span class="dot" id="dot"></span><span id="host">…</span><span id="ms"></span></header>
+  <div class="row">
+    <button class="main" id="browser">Ping im Browser</button>
+    <label class="auto" title="Folgt dem aktiven Tab"><input type="checkbox" id="autoBrowser"><span class="sw"></span>AUTO</label>
+  </div>
+  <div class="row">
+    <button class="main" id="terminal">Ping im Terminal</button>
+    <label class="auto" title="Folgt dem aktiven Tab (braucht den Helfer)"><input type="checkbox" id="autoTerminal"><span class="sw"></span>AUTO</label>
+  </div>
+  <div id="note"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

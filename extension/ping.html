@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>tab2ping</title>
+<style id="style">
+  html, body { margin: 0; height: 100%; background: #111; }
+  #app { display: flex; flex-direction: column; height: 100%; color: #e8e8e8; font: 12px/1.45 ui-monospace, Menlo, monospace; }
+  header { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #1c1c1e; font: 600 13px system-ui, sans-serif; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #9a9a9a; flex: none; }
+  .up { --c: #3fbf5a; } .error { --c: #f0a020; } .timeout { --c: #ef5a4c; }
+  .dot.up, .dot.error, .dot.timeout { background: var(--c); }
+  #host { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #follow { color: #8e8e93; font-weight: 500; font-size: 11px; }
+  #pin { border: 0; background: none; color: #8e8e93; font-size: 14px; cursor: pointer; padding: 0 2px; }
+  #pin:hover { color: #fff; }
+  #log { flex: 1; overflow-y: auto; padding: 6px 10px; }
+  #log div { white-space: nowrap; }
+  #log .t { color: #6e6e73; }
+  #log .s { color: var(--c); }
+  #log .sep { color: #8e8e93; margin: 4px 0; }
+</style>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <span class="dot" id="dot"></span><span id="host"></span><span id="follow"></span>
+      <button id="pin" title="Immer im Vordergrund">📌</button>
+    </header>
+    <div id="log"></div>
+  </div>
+  <script src="ping.js"></script>
+</body>
+</html>
