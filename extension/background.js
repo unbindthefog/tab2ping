@@ -60,9 +60,22 @@ function setStream(id, host) {
     connectHelper();
     if (helperState === 'ok') helper.postMessage({ cmd: 'ping', id, host });
   }
-  if (id === 'icon') showIcon();
+  if (id === 'icon') {
+    showIcon();
+    if (host) followInTerminal(host);
+  }
   broadcast();
 }
+
+// AUTO under TERMINAL: a Terminal opened with it pings the active tab's host (see follow.sh in the
+// helper). Switched on later, it follows from the next change on.
+async function followInTerminal(host) {
+  const { autoTerminal } = await chrome.storage.local.get({ autoTerminal: false });
+  if (autoTerminal && helper && helperState === 'ok') helper.postMessage({ cmd: 'follow', host });
+}
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.autoTerminal?.newValue && streams.icon) followInTerminal(streams.icon.host);
+});
 
 // --- Toolbar icon --------------------------------------------------------------------------------
 
@@ -142,7 +155,7 @@ chrome.runtime.onConnect.addListener(port => {
     if (msg.type === 'hold') setStream('held', msg.host);  // ping window: AUTO off (null: on)
     if (msg.type === 'terminal' && msg.host) {
       connectHelper();
-      helper.postMessage({ cmd: 'terminal', host: msg.host });
+      helper.postMessage({ cmd: 'terminal', host: msg.host, follow: !!msg.follow });
     }
   });
   connectHelper();

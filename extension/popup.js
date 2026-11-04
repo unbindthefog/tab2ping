@@ -47,16 +47,24 @@ port.onMessage.addListener(render);
 // While the helper is missing, look again every 2 s: the install may happen meanwhile.
 setInterval(() => { if (helper === 'missing') port.postMessage({ type: 'retry' }); }, 2000);
 
-chrome.storage.local.get({ auto: true }).then(s => { auto = s.auto; showAuto(); });
+// AUTO strips: "auto" for the ping window, "autoTerminal" for the Terminal opened by TERMINAL. An open
+// ping window or Terminal follows a change at once.
+const autos = { auto: true, autoTerminal: false };
+const strip = { auto: 'auto', autoTerminal: 'autoTerminal' };
+chrome.storage.local.get(autos).then(s => { Object.assign(autos, s); showAuto(); });
 function showAuto() {
-  $('auto').classList.toggle('on', auto);
-  $('auto').setAttribute('aria-pressed', String(auto));
+  for (const k of Object.keys(autos)) {
+    $(strip[k]).classList.toggle('on', autos[k]);
+    $(strip[k]).setAttribute('aria-pressed', String(autos[k]));
+  }
 }
-$('auto').addEventListener('click', () => {
-  auto = !auto;
-  chrome.storage.local.set({ auto });   // an open ping window follows at once
-  showAuto();
-});
+for (const k of Object.keys(autos)) {
+  $(strip[k]).addEventListener('click', () => {
+    autos[k] = !autos[k];
+    chrome.storage.local.set({ [k]: autos[k] });
+    showAuto();
+  });
+}
 
 // The ping window opens centred under the mouse: the next click there pins it on top (only a click
 // in that window may open the pinned window, see ping.js). From the keyboard: centre of the screen.
@@ -82,7 +90,7 @@ $('browser').addEventListener('click', async e => {
 // The helper opens Terminal with ping; the first time, macOS asks whether tab2ping may control it.
 $('terminal').addEventListener('click', () => {
   terminalError = null;
-  port.postMessage({ type: 'terminal', host });
+  port.postMessage({ type: 'terminal', host, follow: autos.autoTerminal });
   $('terminalLamp').textContent = 'GEÖFFNET';
   $('terminalLamp').className = 'lamp info';
 });
