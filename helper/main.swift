@@ -204,11 +204,8 @@ func openTerminal(host: String) {
 // Connection gone: no ping may outlive it (ping6 stays silent towards a dead host, so it would never
 // notice the closed pipe by itself).
 func shutdown() -> Never {
-    lock.lock()
-    let all = Array(pings.values)
-    pings.removeAll()
-    lock.unlock()
-    all.forEach { $0.watchdog?.cancel(); if $0.process.isRunning { $0.process.terminate() } }
+    lock.lock()   // held until exit: a second caller waits here instead of exiting early
+    pings.values.forEach { $0.watchdog?.cancel(); if $0.process.isRunning { $0.process.terminate() } }
     exit(0)
 }
 
