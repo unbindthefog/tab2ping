@@ -1,0 +1,2 @@
+Tiny5 by The Tiny5 Project Authors (SIL OFL 1.1), https://fonts.google.com/specimen/Tiny5
+WOFF2 subsets latin and latin-ext as served by fonts.gstatic.com (v3), unmodified, 2026-10-25.

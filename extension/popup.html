@@ -2,43 +2,32 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
+<title>tab2ping</title>
+<link rel="stylesheet" href="style.css">
 <style>
-  :root { --bg: #fff; --fg: #1d1d1f; --muted: #6e6e73; --line: #d2d2d7; --key: #f2f2f4; --on: #2e9e44; }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #1e1e20; --fg: #f2f2f4; --muted: #9a9aa0; --line: #3a3a3e; --key: #2c2c2f; }
-  }
-  body { margin: 0; width: 260px; background: var(--bg); color: var(--fg); font: 13px/1.4 system-ui, sans-serif; }
-  header { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
-  .dot { width: 12px; height: 12px; border-radius: 50%; background: #9a9a9a; flex: none; }
-  .dot.up { background: #2e9e44; } .dot.error { background: #e08a00; } .dot.timeout { background: #d43c2f; }
-  #host { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-  #ms { color: var(--muted); font-variant-numeric: tabular-nums; }
-  .row { display: flex; align-items: center; gap: 8px; padding: 10px 14px; }
-  .row + .row { border-top: 1px solid var(--line); }
-  button.main { flex: 1; padding: 8px 10px; border: 0; border-radius: 8px; background: var(--key); color: var(--fg);
-    font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
-  button.main:disabled { color: var(--muted); cursor: default; }
-  label.auto { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 11px; font-weight: 600; cursor: pointer; }
-  label.auto input { display: none; }
-  label.auto .sw { width: 28px; height: 16px; border-radius: 8px; background: var(--line); position: relative; transition: background .15s; }
-  label.auto .sw::after { content: ''; position: absolute; left: 2px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; transition: left .15s; }
-  label.auto input:checked + .sw { background: var(--on); }
-  label.auto input:checked + .sw::after { left: 14px; }
-  #note { padding: 0 14px 12px; color: var(--muted); font-size: 11px; min-height: 0; }
+  /* Palette, keys, lamps and footer: style.css (copied from tab2tv). */
+  body { font: 9px/1.4 var(--mono); width: 173px; margin: 0; padding: 8px; color: var(--text); background: var(--bg); }
+  /* Host of the active tab with a live dot, above the keys. */
+  .status { display: flex; align-items: center; gap: 6px; margin: 0 2px 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--disabled); flex: none; }
+  .dot.up { background: var(--on); } .dot.error { background: var(--info); } .dot.timeout { background: var(--off); }
+  #host { font-weight: 600; color: var(--strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  #ms { color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  #note { margin: 8px 2px 0; color: var(--text); }
   #note:empty { display: none; }
 </style>
 </head>
 <body>
-  <header><span class="dot" id="dot"></span><span id="host">…</span><span id="ms"></span></header>
-  <div class="row">
-    <button class="main" id="browser">Ping im Browser</button>
-    <label class="auto" title="Folgt dem aktiven Tab"><input type="checkbox" id="autoBrowser"><span class="sw"></span>AUTO</label>
-  </div>
-  <div class="row">
-    <button class="main" id="terminal">Ping im Terminal</button>
-    <label class="auto" title="Folgt dem aktiven Tab (braucht den Helfer)"><input type="checkbox" id="autoTerminal"><span class="sw"></span>AUTO</label>
-  </div>
-  <div id="note"></div>
-  <script src="popup.js"></script>
+<div class="status"><span class="dot" id="dot"></span><span id="host">…</span><span id="ms"></span></div>
+<!-- One column per way of pinging: the way on top, its AUTO key below. -->
+<div class="panel">
+  <button class="key" id="browser" type="button" title="Ping-Fenster öffnen">BROWSER<span class="lamp" id="browserLamp"></span></button>
+  <button class="key" id="terminal" type="button" title="Ping im Terminal">TERMINAL<span class="lamp" id="terminalLamp"></span></button>
+  <button class="key" id="autoBrowser" type="button" title="Ping-Fenster folgt dem aktiven Tab">AUTO<span class="lamp" id="autoBrowserLamp"></span></button>
+  <button class="key" id="autoTerminal" type="button" title="Terminal folgt dem aktiven Tab (braucht den Helfer)">AUTO<span class="lamp" id="autoTerminalLamp"></span></button>
+</div>
+<div id="note"></div>
+<footer class="footer"><h1>tab2ping</h1><span class="version" id="version"></span></footer>
+<script src="popup.js"></script>
 </body>
 </html>

@@ -1,0 +1,74 @@
+/* Copied from tab2tv (github.com/unbindthefog/tab2tv, extension/style.css) at e9cc437. Change it there and
+   copy it again, so the two extensions keep one look. */
+
+/* tab2tv look: one palette and the building blocks shared by popup, settings and TV placeholder.
+   Self-contained so it can be copied as a whole into a sibling project (fonts/tiny5 comes along).
+   Page-only things (popup width, pixel metrics of the video title, page layout) stay in the page.
+   Selectors are classes or scoped to their block, so linking this file restyles nothing by itself. */
+
+/* ---- Palette. Light/dark follows the system. ---- */
+:root { color-scheme: light dark; --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --bg: #f4f4f5;          /* page */
+  --text: #6b6b70;        /* body text */
+  --muted: #6b6b70;       /* secondary text (hints): dimmer than --strong in both modes, >= 4.5:1 on a block */
+  --strong: #2a2a2e;      /* key legends, primary text */
+  --key: #ffffff;         /* key face, settings block */
+  --key-hover: #ececef;
+  --key-active: #e2e2e6;
+  --border: #c9c9ce;
+  --disabled: #a5a5ab;    /* disabled legend, faint text (version, video title) */
+  --on: #157a2c;          /* lamp: on, ok */
+  --off: #c92a2a;         /* lamp: off, error */
+  --info: #7d5d00;        /* lamp: notice */
+  /* TV screen: always dark, whatever the system says. */
+  --screen-bg: #000000;
+  --screen-text: #3a3a3c; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #1c1c1d; --text: #dbdbdb; --muted: #a4a4a9; --strong: #e6e6e6; --key: #39393b; --key-hover: #444447;
+    --key-active: #2b2b2f; --border: #4a4a4d; --disabled: #85858b;
+    --on: #3ccf55; --off: #ff7a7a; --info: #e2c048; }
+}
+
+/* ---- Key panel: flat square keys (1:1, sharp corners), mono all-caps legends, one lamp line per key. ---- */
+.panel { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.key { font: 600 10px/1.2 var(--mono); letter-spacing: .08em; text-transform: uppercase;
+  aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  position: relative;   /* anchor for extras inside the key, e.g. the popup's video title */
+  color: var(--strong); background: var(--key); border: 1px solid var(--border); border-radius: 0; cursor: pointer; }
+.key:hover:not(:disabled) { background: var(--key-hover); }
+.key:active:not(:disabled) { background: var(--key-active); }
+.key:disabled { cursor: default; color: var(--disabled); }
+
+/* ---- Lamp: status line under a key legend, text plus color on/off/info. ---- */
+.lamp { font-size: 8px; letter-spacing: .08em; }
+.lamp:empty { display: none; }   /* legend alone stays vertically centered */
+.lamp.on { color: var(--on); }
+.lamp.off { color: var(--off); }
+.lamp.info { color: var(--info); }
+
+/* ---- Footer: project name left, version line right ("dev · v0.36 · 1a2b3c4"). ---- */
+.footer { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; margin: 8px 2px 0; }
+.footer h1 { font: 600 9px var(--mono); letter-spacing: .1em; color: var(--text); margin: 0; }
+.version { font: 8px var(--mono); color: var(--disabled); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- Settings page (body class "settings"): fieldsets, hints, a collapsible "advanced" block. ---- */
+.settings fieldset { border: 1px solid var(--border); border-radius: 8px; margin: 0 0 16px; padding: 12px 16px; background: var(--key); }
+.settings label { display: block; margin: 6px 0; }
+.hint { color: var(--muted); font-size: 13px; margin: 6px 0; }
+details.advanced { border: 1px solid var(--border); border-radius: 8px; margin: 0 0 16px; padding: 8px 16px; background: var(--key); }
+details.advanced > summary { cursor: pointer; font-weight: 600; }
+details.advanced h3 { font-size: 14px; margin: 14px 0 4px; }
+.settings pre { font-size: 12px; background: var(--key-hover); padding: 8px; overflow-x: auto; }
+
+/* ---- Screen: dark placeholder filling a TV window, one dim mono word in the middle. ---- */
+.screen { margin: 0; height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: var(--screen-bg); cursor: none; }
+.screen h1 { font: 700 28px var(--mono); letter-spacing: .2em; color: var(--screen-text); margin: 0; }
+
+/* ---- Tiny5 (fonts/tiny5, OFL): pixel font with 8 pixels per em (128 of 1024 units each). 8px draws it
+   1:1; on a Retina display one font pixel = 2×2 screen pixels. Single weight: use font-synthesis: none.
+   Keep its boxes on whole pixels, or the pixels blur. ---- */
+@font-face { font-family: "Tiny5"; font-display: block; src: url(fonts/tiny5/Tiny5-latin.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Tiny5"; font-display: block; src: url(fonts/tiny5/Tiny5-latin-ext.woff2) format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }

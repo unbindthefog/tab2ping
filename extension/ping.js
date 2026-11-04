@@ -5,7 +5,7 @@ const params = new URLSearchParams(location.search);
 const auto = !!params.get('auto');
 const startTarget = { host: params.get('host'), origin: params.get('origin') };
 // References kept: once pinned, the elements live in the other window's document.
-const el = Object.fromEntries(['app', 'dot', 'host', 'follow', 'pin', 'log', 'style'].map(id => [id, document.getElementById(id)]));
+const el = Object.fromEntries(['app', 'dot', 'host', 'follow', 'pin', 'log', 'sheet', 'style'].map(id => [id, document.getElementById(id)]));
 const LABELS = { up: 'antwortet', error: 'Fehler', timeout: 'Zeitüberschreitung' };
 const MAX_LINES = 200;
 
@@ -14,7 +14,7 @@ let timerWin = window;   // whose timer runs the probes (the pinned window stays
 let timer = null;
 let busy = false;        // a probe can take up to 2 s: no second one meanwhile
 
-el.follow.textContent = auto ? 'folgt dem Tab' : '';
+el.follow.textContent = auto ? 'auto' : '';
 
 function line(cls, html) {
   const log = el.log;
@@ -50,7 +50,8 @@ async function tick() {
   el.dot.className = 'dot ' + r.state;
   const time = new Date().toLocaleTimeString('de-DE');
   const ms = r.state === 'timeout' ? '' : ' ' + r.ms + ' ms';
-  line(r.state, `<span class="t">${time}</span> ${esc(r.target.host)} <span class="s">${LABELS[r.state]}${ms}</span>`);
+  // The host stands in the header; a change gets its own "→ host" line.
+  line(r.state, `<span class="t">${time}</span> <span class="s">${LABELS[r.state]}${ms}</span>`);
 }
 
 function run(win) {
@@ -67,9 +68,20 @@ el.pin.addEventListener('click', async () => {
     return;   // e.g. another picture-in-picture window is open; the pin stays
   }
   pip.document.title = document.title;
-  pip.document.head.append(el.style.cloneNode(true));
+  // The picture-in-picture document is about:blank: the stylesheet needs its full address there.
+  const sheet = el.sheet.cloneNode();
+  sheet.href = chrome.runtime.getURL('style.css');
+  pip.document.head.append(sheet, el.style.cloneNode(true));
   pip.document.body.append(el.app);
   el.log.scrollTop = el.log.scrollHeight;   // moving it reset the scroll position
+  // Brave may zoom the picture-in-picture window differently from this one (e.g. the default page
+  // zoom): keep the content the size it had here.
+  const ratio = pip.devicePixelRatio / devicePixelRatio;
+  if (Math.abs(ratio - 1) > 0.01) el.app.style.fontSize = (12 / ratio).toFixed(2) + 'px';
+  // MOCKUP diagnosis: why the pinned window looks bigger in some profiles.
+  const f = w => w.getComputedStyle(el.app).fontSize;
+  line('sep', `Diagnose: dpr ${devicePixelRatio} → ${pip.devicePixelRatio}, Breite ${innerWidth} → ${pip.innerWidth}, `
+    + `Schrift ${f(pip)}, Fenster ${pip.outerWidth}×${pip.outerHeight}`);
   el.pin.hidden = true;
   run(pip);
   // The window behind it isn't needed while pinned; closing the pinned window ends everything.

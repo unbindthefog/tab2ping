@@ -37,10 +37,27 @@ function shellHost(host) {
   return /^[A-Za-z0-9._:-]+$/.test(h) && !h.startsWith('-') ? h : null;   // '-f' would be an option
 }
 
+// AUTO keys: the lamp shows ON (green) or OFF (red), as in tab2tv.
+const auto = { autoBrowser: true, autoTerminal: false };
+function showAuto() {
+  for (const k of Object.keys(auto)) {
+    const lamp = $(k + 'Lamp');
+    lamp.textContent = auto[k] ? 'ON' : 'OFF';
+    lamp.className = 'lamp ' + (auto[k] ? 'on' : 'off');
+  }
+}
+for (const k of Object.keys(auto)) {
+  $(k).addEventListener('click', () => {
+    auto[k] = !auto[k];
+    chrome.storage.local.set({ [k]: auto[k] });
+    showAuto();
+  });
+}
+
 async function init() {
-  const { autoBrowser = true, autoTerminal = false } = await chrome.storage.local.get(['autoBrowser', 'autoTerminal']);
-  $('autoBrowser').checked = autoBrowser;
-  $('autoTerminal').checked = autoTerminal;
+  Object.assign(auto, await chrome.storage.local.get(Object.keys(auto)));
+  showAuto();
+  $('version').textContent = 'v' + chrome.runtime.getManifest().version;
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   target = targetOf(tab?.url);
   $('host').textContent = target?.host || 'Keine Webseite';
@@ -49,14 +66,11 @@ async function init() {
   setInterval(tick, 1000);
 }
 
-$('autoBrowser').addEventListener('change', e => chrome.storage.local.set({ autoBrowser: e.target.checked }));
-$('autoTerminal').addEventListener('change', e => chrome.storage.local.set({ autoTerminal: e.target.checked }));
-
 // A small window with the results; it can be pinned on top from there. Placed top right on the
 // screen the popup is on.
 $('browser').addEventListener('click', async () => {
   $('browser').disabled = true;   // one window per click
-  const params = new URLSearchParams({ auto: $('autoBrowser').checked ? '1' : '', host: target.host, origin: target.origin });
+  const params = new URLSearchParams({ auto: auto.autoBrowser ? '1' : '', host: target.host, origin: target.origin });
   const width = 340, height = 260;
   try {
     await chrome.windows.create({
@@ -79,8 +93,10 @@ $('terminal').addEventListener('click', async () => {
     $('note').textContent = 'Kopieren hat nicht geklappt.';
     return;
   }
-  $('note').textContent = '„ping ' + host + '“ kopiert – im Terminal einfügen. Mit dem Helfer öffnet tab2ping das Terminal selbst'
-    + ($('autoTerminal').checked ? ' und wechselt den Ping mit dem Tab.' : '.');
+  $('terminalLamp').textContent = 'KOPIERT';
+  $('terminalLamp').className = 'lamp info';
+  $('note').textContent = '„ping ' + host + '“ im Terminal einfügen. Mit dem Helfer öffnet tab2ping das Terminal selbst'
+    + (auto.autoTerminal ? ' und wechselt den Ping mit dem Tab.' : '.');
 });
 
 init();
