@@ -16,7 +16,7 @@
 // Hosts are checked before use and always passed as a single argument, never through a shell.
 import Foundation
 
-let version = "0.1"
+let version = "0.2"
 let writeQueue = DispatchQueue(label: "write")
 // A closed channel shows up as a write error (then shutdown), not as a signal that would kill the
 // helper before it ends its pings. Children get the default handling back.
