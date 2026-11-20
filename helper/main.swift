@@ -15,9 +15,10 @@
 // timeouts; a slow name lookup prints nothing). Terminal errors come with id "terminal".
 // Hosts are checked before use and always passed as a single argument, never through a shell.
 import Foundation
+import AppKit
 
 // What this helper understands; the extension asks for a minimum. 2: Terminal follow mode.
-let protocolVersion = 2
+let protocolVersion = 3   // 2: Terminal follow mode; 3: native ping window (PROOF OF CONCEPT, window.swift)
 let writeQueue = DispatchQueue(label: "write")
 // A closed channel shows up as a write error (then shutdown), not as a signal that would kill the
 // helper before it ends its pings. Children get the default handling back.
@@ -93,6 +94,10 @@ func report(_ p: Ping, _ message: [String: Any]) {
     m["host"] = p.host
     lock.lock(); p.lastNews = Date(); lock.unlock()
     send(m)
+    if p.id == "icon" {   // the native window shows the active tab's ping
+        let type = message["type"] as? String ?? "", ms = message["ms"] as? Double, text = message["text"] as? String
+        DispatchQueue.main.async { PingWindow.shared.add(host: p.host, type: type, ms: ms, text: text) }
+    }
 }
 
 // Hands over complete lines from a pipe; at its end, closes it and calls done.
@@ -258,6 +263,12 @@ func handle(_ msg: [String: Any]) {
         guard id != "terminal" else { return send(["type": "error", "id": id, "text": "reserved id"]) }
         guard let host = checkedHost(msg["host"]) else { return send(["type": "error", "id": id, "text": "invalid host"]) }
         startPing(id: id, host: host)
+    case "window":   // {"cmd":"window","show":true|false} -> {"type":"window","visible":…}
+        let show = msg["show"] as? Bool ?? true
+        DispatchQueue.main.async {
+            show ? PingWindow.shared.show() : PingWindow.shared.hide()
+            send(["type": "window", "visible": PingWindow.shared.isVisible])
+        }
     case "stop":
         stopPing(id)
     case "terminal":
@@ -302,4 +313,7 @@ DispatchQueue.global().async {
     }
     shutdown()
 }
-dispatchMain()
+// AppKit for the native window: a background app, no Dock icon, no menu.
+PingWindow.shared.onClose = { send(["type": "window", "visible": false]) }
+NSApplication.shared.setActivationPolicy(.accessory)
+NSApplication.shared.run()

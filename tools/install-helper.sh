@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Builds the tab2ping helper (helper/main.swift) and registers it with the installed browsers, for
+# Builds the tab2ping helper (helper/*.swift) and registers it with the installed browsers, for
 # this macOS account. Usage: tools/install-helper.sh [--uninstall]
 # (--uninstall removes entries in TAB2PING_NMH_DIRS only if it is set again.)
 #   TAB2PING_NMH_DIRS  extra NativeMessagingHosts folders, separated by ":". A browser started with

@@ -24,8 +24,12 @@ const v = globalThis.TAB2PING_VERSION;
 const manifestVersion = 'v' + chrome.runtime.getManifest().version;
 $('version').textContent = v ? `${v.branch} · ${manifestVersion} · ${v.commit}` : manifestVersion;
 
+let nativeWindow = null;   // PROOF OF CONCEPT: the helper's floating window, if it can draw one
 function render(s) {
   helper = s.helper;
+  nativeWindow = s.nativeWindow;
+  $('browserLamp').textContent = nativeWindow?.visible ? 'ON' : '';
+  $('browserLamp').className = nativeWindow?.visible ? 'lamp on' : 'lamp';
   host = s.icon?.host || null;
   const r = s.icon?.result;
   $('host').textContent = host || t('noWebPage');
@@ -77,6 +81,7 @@ for (const k of Object.keys(autos)) {
 // The ping window opens centred under the mouse: the next click there pins it on top (only a click
 // in that window may open the pinned window, see ping.js). From the keyboard: centre of the screen.
 $('browser').addEventListener('click', async e => {
+  if (nativeWindow) { port.postMessage({ type: 'nativeWindow' }); return; }   // PROOF OF CONCEPT
   // One ping window: an open one comes to the front instead. Pinned, its window stays minimized
   // behind the window on top, so only a window that shows its content is brought up.
   $('browser').disabled = true;

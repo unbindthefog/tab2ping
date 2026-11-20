@@ -11,6 +11,8 @@ const COLORS = { up: '#2e9e44', error: '#e08a00', down: '#d43c2f', none: '#9a9a9
 let helper = null;           // native port, null while not connected
 let helperState = 'unknown'; // 'ok' | 'missing' | 'outdated' | 'unknown'
 const MIN_PROTOCOL = 2;       // Terminal follow mode (helper/main.swift)
+// PROOF OF CONCEPT: the helper's own floating window (protocol 3); null when the helper can't draw it.
+let nativeWindow = null;
 let autoTerminal = false;     // AUTO under TERMINAL, kept here so follow goes out in order
 chrome.storage.local.get({ autoTerminal: false }).then(s => {
   autoTerminal = s.autoTerminal;
@@ -29,6 +31,7 @@ function connectHelper() {
     // Not installed, or gone (e.g. replaced by a new install): pings ended with it.
     console.debug('[tab2ping] helper disconnected:', chrome.runtime.lastError?.message);
     helper = null;
+    nativeWindow = null;   // gone with the helper
     helperState = 'missing';
     for (const id of Object.keys(streams)) streams[id].result = null;
     showIcon();
@@ -41,12 +44,14 @@ function onHelperMessage(msg) {
   if (msg.type === 'hello') {
     // An older helper (installed from an earlier release) lacks features: the popup offers the update.
     helperState = (msg.protocol || 0) >= MIN_PROTOCOL ? 'ok' : 'outdated';
+    nativeWindow = (msg.protocol || 0) >= 3 ? { visible: false } : null;
     if (helperState !== 'ok') { broadcast(); return; }
     // Restart the pings that were wanted before the helper answered.
     for (const [id, s] of Object.entries(streams)) helper.postMessage({ cmd: 'ping', id, host: s.host });
     broadcast();
     return;
   }
+  if (msg.type === 'window') { nativeWindow = { visible: !!msg.visible }; broadcast(); return; }
   if (msg.id === 'terminal') { broadcast({ terminalError: msg.text }); return; }
   const s = streams[msg.id];
   if (!s) return;
@@ -146,7 +151,7 @@ showIcon();
 
 // Everything a display needs, plus what just happened.
 function snapshot(extra) {
-  return { helper: helperState, icon: streams.icon || null, held: streams.held || null, ...extra };
+  return { helper: helperState, icon: streams.icon || null, held: streams.held || null, nativeWindow, ...extra };
 }
 function broadcast(extra = {}) {
   for (const port of listeners) port.postMessage(snapshot(extra));
@@ -166,6 +171,7 @@ chrome.runtime.onConnect.addListener(port => {
       connectHelper();
     }
     if (msg.type === 'hold') setStream('held', msg.host);  // ping window: AUTO off (null: on)
+    if (msg.type === 'nativeWindow' && helper && nativeWindow) helper.postMessage({ cmd: 'window', show: !nativeWindow.visible });
     if (msg.type === 'terminal' && msg.host) {
       if (helperState !== 'ok') { port.postMessage(snapshot({ terminalError: 'notReady' })); return; }
       helper.postMessage({ cmd: 'terminal', host: msg.host, follow: !!msg.follow });
