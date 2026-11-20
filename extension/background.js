@@ -9,7 +9,13 @@ const HOST_NAME = 'com.unbindthefog.tab2ping';
 const COLORS = { up: '#2e9e44', error: '#e08a00', down: '#d43c2f', none: '#9a9a9a' };
 
 let helper = null;           // native port, null while not connected
-let helperState = 'unknown'; // 'ok' | 'missing' | 'unknown'
+let helperState = 'unknown'; // 'ok' | 'missing' | 'outdated' | 'unknown'
+const MIN_PROTOCOL = 2;       // Terminal follow mode (helper/main.swift)
+let autoTerminal = false;     // AUTO under TERMINAL, kept here so follow goes out in order
+chrome.storage.local.get({ autoTerminal: false }).then(s => {
+  autoTerminal = s.autoTerminal;
+  if (streams.icon) followInTerminal(streams.icon.host);   // a follow before this was skipped
+});
 const streams = {};          // id -> { host, result } with result { state, ms, text, at }
 const listeners = new Set(); // ports of the popup and the ping window
 
@@ -33,7 +39,9 @@ function connectHelper() {
 
 function onHelperMessage(msg) {
   if (msg.type === 'hello') {
-    helperState = 'ok';
+    // An older helper (installed from an earlier release) lacks features: the popup offers the update.
+    helperState = (msg.protocol || 0) >= MIN_PROTOCOL ? 'ok' : 'outdated';
+    if (helperState !== 'ok') { broadcast(); return; }
     // Restart the pings that were wanted before the helper answered.
     for (const [id, s] of Object.entries(streams)) helper.postMessage({ cmd: 'ping', id, host: s.host });
     broadcast();
@@ -68,13 +76,14 @@ function setStream(id, host) {
 }
 
 // AUTO under TERMINAL: a Terminal opened with it pings the active tab's host (see follow.sh in the
-// helper). Switched on later, it follows from the next change on.
-async function followInTerminal(host) {
-  const { autoTerminal } = await chrome.storage.local.get({ autoTerminal: false });
+// helper). Switched on later, it follows the current host at once.
+function followInTerminal(host) {
   if (autoTerminal && helper && helperState === 'ok') helper.postMessage({ cmd: 'follow', host });
 }
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes.autoTerminal?.newValue && streams.icon) followInTerminal(streams.icon.host);
+  if (area !== 'local' || !('autoTerminal' in changes)) return;
+  autoTerminal = changes.autoTerminal.newValue;
+  if (autoTerminal && streams.icon) followInTerminal(streams.icon.host);
 });
 
 // --- Toolbar icon --------------------------------------------------------------------------------
@@ -151,10 +160,14 @@ chrome.runtime.onConnect.addListener(port => {
     if (port.name === 'window') setStream('held', null);   // the window's own ping ends with it
   });
   port.onMessage.addListener(msg => {
-    if (msg.type === 'retry') connectHelper();             // e.g. the popup waits for an install
+    if (msg.type === 'retry') {                            // e.g. the popup waits for an install
+      // An outdated helper stays connected: reconnect, so an updated one gets started.
+      if (helperState === 'outdated' && helper) { helper.disconnect(); helper = null; }
+      connectHelper();
+    }
     if (msg.type === 'hold') setStream('held', msg.host);  // ping window: AUTO off (null: on)
     if (msg.type === 'terminal' && msg.host) {
-      connectHelper();
+      if (helperState !== 'ok') { port.postMessage(snapshot({ terminalError: 'Helfer nicht bereit' })); return; }
       helper.postMessage({ cmd: 'terminal', host: msg.host, follow: !!msg.follow });
     }
   });

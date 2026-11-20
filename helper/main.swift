@@ -2,7 +2,7 @@
 // It runs /sbin/ping for the hosts the extension asks for and opens Terminal with ping.
 //
 // Messages are JSON, each framed by a 32-bit length in native byte order (Chrome's protocol).
-// In:  {"cmd":"hello"}                          -> {"type":"hello","version":"…"}
+// In:  {"cmd":"hello"}                          -> {"type":"hello","protocol":2}
 //      {"cmd":"ping","id":"…","host":"…"}       -> start (or restart) a ping under that id
 //      {"cmd":"stop","id":"…"}                  -> end it
 //      {"cmd":"terminal","host":"…"}            -> Terminal window running ping
@@ -16,7 +16,8 @@
 // Hosts are checked before use and always passed as a single argument, never through a shell.
 import Foundation
 
-let version = "0.2"
+// What this helper understands; the extension asks for a minimum. 2: Terminal follow mode.
+let protocolVersion = 2
 let writeQueue = DispatchQueue(label: "write")
 // A closed channel shows up as a write error (then shutdown), not as a signal that would kill the
 // helper before it ends its pings. Children get the default handling back.
@@ -181,9 +182,10 @@ let followTarget = support.appendingPathComponent("follow-target")
 let followScript = support.appendingPathComponent("follow.sh")
 let followSource = """
 #!/bin/sh
-# Written by the tab2ping helper: pings the host in $1 and follows it when it changes.
+# Written by the tab2ping helper: pings the host in $1 and follows it when it changes. The target
+# file is shared: every Terminal opened with AUTO follows the host written last.
 file=$1; last=; pid=
-trap '[ -n "$pid" ] && kill "$pid" 2>/dev/null' EXIT
+trap '[ -n "$pid" ] && kill "$pid" 2>/dev/null' EXIT HUP INT TERM
 while :; do
   host=$(cat "$file" 2>/dev/null)
   if [ "$host" != "$last" ]; then
@@ -251,7 +253,7 @@ func handle(_ msg: [String: Any]) {
     let id = msg["id"] as? String ?? "main"
     switch msg["cmd"] as? String {
     case "hello":
-        send(["type": "hello", "version": version])
+        send(["type": "hello", "protocol": protocolVersion])
     case "ping":
         guard id != "terminal" else { return send(["type": "error", "id": id, "text": "reserved id"]) }
         guard let host = checkedHost(msg["host"]) else { return send(["type": "error", "id": id, "text": "invalid host"]) }

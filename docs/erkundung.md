@@ -1,5 +1,7 @@
 # Erkundung
 
+> Stand der Umsetzung (v0.x): Helfer in Swift statt Go, nur macOS; Installer wie unten beschrieben in `tools/install.sh.in`, ohne Link „Skript ansehen“. Die Notiz bleibt als Herleitung stehen.
+
 ## Installation des Helfers (Stand 2026-11-04, Überlegung, noch nicht ausprobiert)
 
 Ein echter Ping (ICMP) und das Öffnen eines Terminals gehen nur über einen kleinen Helfer auf dem

@@ -89,6 +89,10 @@ async function pin() {
   pip.addEventListener('pagehide', () => window.close());
 }
 document.addEventListener('click', pin);
+// Asked by the popup before it opens another window: pinned, nothing needs to come up.
+chrome.runtime.onMessage.addListener((msg, sender, reply) => {
+  if (msg.type === 'pinned?') reply(!el.app.classList.contains('unpinned'));
+});
 document.addEventListener('keydown', e => {   // a key press is a user activation too
   if (e.repeat || (e.key !== 'Enter' && e.key !== ' ')) return;
   e.preventDefault();

@@ -31,7 +31,7 @@ const of = (id, type) => messages.filter(m => m.id === id && (!type || m.type ==
 // The first start of the helper may take a moment (the system checks the new binary).
 const until = async (pred, ms) => { for (let t = 0; t < ms && !pred(); t += 50) await wait(50); return pred(); };
 send({ cmd: 'hello' });
-check('hello answers with a version', await until(() => messages.some(m => m.type === 'hello' && m.version), 5000));
+check('hello answers with protocol 2 or newer', await until(() => messages.some(m => m.type === 'hello' && m.protocol >= 2), 5000));
 
 send({ cmd: 'ping', id: 'local', host: '127.0.0.1' });
 await wait(2500);

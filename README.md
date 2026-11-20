@@ -1,8 +1,14 @@
 # tab2ping
 
-Brave-Erweiterung, die den Host des aktiven Tabs fortlaufend anpingt, damit sich bei Weboberflächen von Geräten im lokalen Netz sofort zeigt, ob das Gerät überhaupt erreichbar ist. Gehört zur Familie von [tab2tv](https://github.com/unbindthefog/tab2tv): Beide halten etwas in Echtzeit mit dem aktiven Tab synchron.
+Browser-Erweiterung (Brave, Chrome, Edge), die den Host des aktiven Tabs fortlaufend anpingt, damit sich bei Weboberflächen von Geräten im lokalen Netz sofort zeigt, ob das Gerät überhaupt erreichbar ist. Gehört zur Familie von [tab2tv](https://github.com/unbindthefog/tab2tv): Beide halten etwas in Echtzeit mit dem aktiven Tab synchron.
 
 Stand: erste funktionale Version im Aufbau (nur macOS).
+
+<p>
+  <img src="docs/img/popup.png" alt="Popup: Host mit Punkt und ms, Tasten BROWSER und TERMINAL mit AUTO" width="187">
+  &nbsp;
+  <img src="docs/img/ping-window.png" alt="Ping-Fenster: eine Zeile pro Antwort mit Zeit und ms" width="338">
+</p>
 
 ## Installation
 

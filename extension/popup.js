@@ -37,8 +37,12 @@ function render(s) {
     terminalError = s.terminalError;
     $('terminalLamp').textContent = '';
   }
-  $('install').hidden = helper !== 'missing';   // disappears by itself once the helper answers
-  if (helper === 'missing') {
+  // Missing or too old: the same install line (it updates, too); disappears once the helper answers.
+  $('install').hidden = helper !== 'missing' && helper !== 'outdated';
+  $('installText').textContent = helper === 'outdated'
+    ? 'Der Helfer ist veraltet. Zum Aktualisieren einmal im Terminal ausführen:'
+    : 'Für den Ping braucht tab2ping einen kleinen Helfer. Einmal im Terminal ausführen:';
+  if (helper === 'missing' || helper === 'outdated') {
     $('note').textContent = '';
   } else if (terminalError) {
     $('note').textContent = 'Terminal ließ sich nicht öffnen: ' + terminalError;
@@ -49,7 +53,7 @@ function render(s) {
 port.onMessage.addListener(render);
 
 // While the helper is missing, look again every 2 s: the install may happen meanwhile.
-setInterval(() => { if (helper === 'missing') port.postMessage({ type: 'retry' }); }, 2000);
+setInterval(() => { if (helper === 'missing' || helper === 'outdated') port.postMessage({ type: 'retry' }); }, 2000);
 
 // AUTO strips: "auto" for the ping window, "autoTerminal" for the Terminal opened by TERMINAL. An open
 // ping window or Terminal follows a change at once.
@@ -73,7 +77,21 @@ for (const k of Object.keys(autos)) {
 // The ping window opens centred under the mouse: the next click there pins it on top (only a click
 // in that window may open the pinned window, see ping.js). From the keyboard: centre of the screen.
 $('browser').addEventListener('click', async e => {
+  // One ping window: an open one comes to the front instead. Pinned, its window stays minimized
+  // behind the window on top, so only a window that shows its content is brought up.
   $('browser').disabled = true;
+  try {
+    const [open] = await chrome.tabs.query({ url: chrome.runtime.getURL('ping.html') + '*' });
+    if (open) {
+      const pinned = await chrome.runtime.sendMessage({ type: 'pinned?' }).catch(() => false);   // extension pages get runtime messages, not tab messages
+      if (!pinned) await chrome.windows.update(open.windowId, { state: 'normal', focused: true });
+      window.close();
+      return;
+    }
+  } catch {
+    $('browser').disabled = false;
+    return;
+  }
   const width = 340, height = 260;
   const left0 = screen.availLeft ?? 0, top0 = screen.availTop ?? 0;
   const x = e.detail ? e.screenX : left0 + screen.availWidth / 2;
