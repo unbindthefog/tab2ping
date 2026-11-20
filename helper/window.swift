@@ -16,37 +16,70 @@ private let german = Locale.preferredLanguages.first?.hasPrefix("de") ?? false
 // Own settings domain, independent of the executable's file name.
 private let settings = UserDefaults(suiteName: "com.unbindthefog.tab2ping") ?? .standard
 
-// Background: what lies behind the window, blurred (the system's frosted glass), under a dark tint.
-// The tint's strength is the transparency setting (gear menu); under the mouse it is nearly solid.
-private final class Backdrop: NSVisualEffectView {
+// Background, in three layers: the glass (what lies behind the window, blurred: the system's frosted
+// glass, or Liquid Glass on macOS 26), a dark tint, then the content. Gear menu: style, glass
+// strength, transparency (tint); kept between runs. Under the mouse the tint is nearly solid.
+private final class Backdrop: NSView {
+    private var glass: NSView?
     private let tint = NSView()
     private var hovering = false
-    // 0 = barely see-through, 1 = as clear as it gets; kept between runs.
+
+    static var liquidAvailable: Bool { if #available(macOS 26.0, *) { return true } else { return false } }
+    var style: String = settings.string(forKey: "style") ?? "frosted" {   // "frosted" | "liquid"
+        didSet { settings.set(style, forKey: "style"); buildGlass() }
+    }
+    var glassStrength: Double = settings.object(forKey: "glass") as? Double ?? 1 {
+        didSet { settings.set(glassStrength, forKey: "glass"); update() }
+    }
     var transparency: Double = settings.object(forKey: "transparency") as? Double ?? 0.5 {
         didSet { settings.set(transparency, forKey: "transparency"); update() }
     }
 
     override func viewDidMoveToWindow() {
         guard window != nil, tint.superview == nil else { return }   // set up once
-        material = .hudWindow
-        blendingMode = .behindWindow
-        state = .active
-        // The blur is drawn by the window server: rounded corners need a mask image, not a layer radius.
-        maskImage = NSImage(size: NSSize(width: 21, height: 21), flipped: false) { rect in
-            NSBezierPath(roundedRect: rect, xRadius: 10, yRadius: 10).fill()
-            return true
-        }
-        maskImage?.capInsets = NSEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-        maskImage?.resizingMode = .stretch
         wantsLayer = true
+        layer?.cornerRadius = 10
+        layer?.masksToBounds = true
         tint.wantsLayer = true
         tint.frame = bounds
         tint.autoresizingMask = [.width, .height]
         addSubview(tint, positioned: .below, relativeTo: nil)
-        update()
+        buildGlass()
         addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: self))
     }
+
+    private func buildGlass() {
+        guard tint.superview != nil else { return }
+        glass?.removeFromSuperview()
+        let g: NSView
+        if style == "liquid", #available(macOS 26.0, *) {
+            let v = NSGlassEffectView()
+            v.cornerRadius = 10
+            v.style = .clear
+            g = v
+        } else {
+            let v = NSVisualEffectView()
+            v.material = .hudWindow
+            v.blendingMode = .behindWindow
+            v.state = .active
+            // The blur is drawn by the window server: rounded corners need a mask image.
+            v.maskImage = NSImage(size: NSSize(width: 21, height: 21), flipped: false) { rect in
+                NSBezierPath(roundedRect: rect, xRadius: 10, yRadius: 10).fill()
+                return true
+            }
+            v.maskImage?.capInsets = NSEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+            v.maskImage?.resizingMode = .stretch
+            g = v
+        }
+        g.frame = bounds
+        g.autoresizingMask = [.width, .height]
+        addSubview(g, positioned: .below, relativeTo: tint)
+        glass = g
+        update()
+    }
+
     private func update() {
+        glass?.alphaValue = glassStrength
         let alpha = hovering ? 0.9 : 0.85 - 0.8 * transparency
         tint.layer?.backgroundColor = NSColor.black.withAlphaComponent(alpha).cgColor
     }
@@ -145,25 +178,42 @@ final class PingWindow: NSObject {
         panel = p
     }
 
-    // Gear menu: one slider for the transparency, applied while it moves.
+    // Gear menu: glass style, glass strength and transparency, applied while the sliders move.
     @objc private func showSettings(_ sender: NSButton) {
         let menu = NSMenu()
+        if Backdrop.liquidAvailable {
+            for (key, de, en) in [("frosted", "Milchglas", "Frosted glass"), ("liquid", "Liquid Glass", "Liquid Glass")] {
+                let item = NSMenuItem(title: german ? de : en, action: #selector(pickStyle(_:)), keyEquivalent: "")
+                item.target = self
+                item.representedObject = key
+                item.state = backdrop.style == key ? .on : .off
+                menu.addItem(item)
+            }
+            menu.addItem(.separator())
+        }
+        menu.addItem(sliderItem(german ? "Glas" : "Glass", backdrop.glassStrength, #selector(slideGlass(_:))))
+        menu.addItem(sliderItem(german ? "Transparenz" : "Transparency", backdrop.transparency, #selector(slide(_:))))
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: -4), in: sender)   // just below the gear
+    }
+
+    private func sliderItem(_ title: String, _ value: Double, _ action: Selector) -> NSMenuItem {
         let item = NSMenuItem()
         let box = NSView(frame: NSRect(x: 0, y: 0, width: 200, height: 46))
-        let label = NSTextField(labelWithString: german ? "Transparenz" : "Transparency")
+        let label = NSTextField(labelWithString: title)
         label.font = NSFont.systemFont(ofSize: 11)
         label.textColor = .secondaryLabelColor
         label.frame = NSRect(x: 14, y: 26, width: 172, height: 14)
-        let slider = NSSlider(value: backdrop.transparency, minValue: 0, maxValue: 1, target: self, action: #selector(slide(_:)))
+        let slider = NSSlider(value: value, minValue: 0, maxValue: 1, target: self, action: action)
         slider.isContinuous = true
         slider.frame = NSRect(x: 12, y: 4, width: 176, height: 20)
         box.addSubview(label)
         box.addSubview(slider)
         item.view = box
-        menu.addItem(item)
-        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: -4), in: sender)   // just below the gear
+        return item
     }
 
+    @objc private func pickStyle(_ item: NSMenuItem) { backdrop.style = item.representedObject as? String ?? "frosted" }
+    @objc private func slideGlass(_ slider: NSSlider) { backdrop.glassStrength = slider.doubleValue }
     @objc private func slide(_ slider: NSSlider) { backdrop.transparency = slider.doubleValue }
 
     // One ping result of the active tab's host; a new host gets a "→ host" line first.
