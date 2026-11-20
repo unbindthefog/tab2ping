@@ -1,0 +1,61 @@
+{
+  "extDescription": {
+    "message": "Pingt fortlaufend den Host des aktiven Tabs."
+  },
+  "noWebPage": {
+    "message": "Keine Webseite"
+  },
+  "browserTitle": {
+    "message": "Ping-Fenster öffnen"
+  },
+  "autoBrowserTitle": {
+    "message": "Ping-Fenster folgt dem aktiven Tab"
+  },
+  "terminalTitle": {
+    "message": "Terminal mit ping öffnen"
+  },
+  "autoTerminalTitle": {
+    "message": "Ping im Terminal folgt dem aktiven Tab"
+  },
+  "copy": {
+    "message": "KOPIEREN"
+  },
+  "copied": {
+    "message": "KOPIERT"
+  },
+  "copyManually": {
+    "message": "MARKIEREN UND KOPIEREN"
+  },
+  "opened": {
+    "message": "GEÖFFNET"
+  },
+  "installNeeded": {
+    "message": "Für den Ping braucht tab2ping einen kleinen Helfer. Einmal im Terminal ausführen:"
+  },
+  "installOutdated": {
+    "message": "Der Helfer ist veraltet. Zum Aktualisieren einmal im Terminal ausführen:"
+  },
+  "terminalFailed": {
+    "message": "Terminal ließ sich nicht öffnen: $detail$",
+    "placeholders": {
+      "detail": {
+        "content": "$1"
+      }
+    }
+  },
+  "helperNotReady": {
+    "message": "Helfer nicht bereit"
+  },
+  "error": {
+    "message": "Fehler"
+  },
+  "reply": {
+    "message": "Antwort"
+  },
+  "noReply": {
+    "message": "keine Antwort"
+  },
+  "clickToPin": {
+    "message": "Klicken zum Anheften"
+  }
+}

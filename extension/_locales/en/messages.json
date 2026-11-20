@@ -1,0 +1,61 @@
+{
+  "extDescription": {
+    "message": "Keeps pinging the host of the active tab."
+  },
+  "noWebPage": {
+    "message": "No web page"
+  },
+  "browserTitle": {
+    "message": "Open the ping window"
+  },
+  "autoBrowserTitle": {
+    "message": "Ping window follows the active tab"
+  },
+  "terminalTitle": {
+    "message": "Open Terminal with ping"
+  },
+  "autoTerminalTitle": {
+    "message": "Ping in Terminal follows the active tab"
+  },
+  "copy": {
+    "message": "COPY"
+  },
+  "copied": {
+    "message": "COPIED"
+  },
+  "copyManually": {
+    "message": "SELECT AND COPY"
+  },
+  "opened": {
+    "message": "OPENED"
+  },
+  "installNeeded": {
+    "message": "tab2ping needs a small helper to ping. Run this once in Terminal:"
+  },
+  "installOutdated": {
+    "message": "The helper is out of date. To update it, run this once in Terminal:"
+  },
+  "terminalFailed": {
+    "message": "Could not open Terminal: $detail$",
+    "placeholders": {
+      "detail": {
+        "content": "$1"
+      }
+    }
+  },
+  "helperNotReady": {
+    "message": "helper not ready"
+  },
+  "error": {
+    "message": "Error"
+  },
+  "reply": {
+    "message": "reply"
+  },
+  "noReply": {
+    "message": "no reply"
+  },
+  "clickToPin": {
+    "message": "Click to pin"
+  }
+}

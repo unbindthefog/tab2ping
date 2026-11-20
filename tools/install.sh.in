@@ -14,8 +14,12 @@ EXTENSION_ID=edkjcikcbhfepbdpkkpangmljbhknblc
 SUPPORT="${HOME:?}/Library/Application Support"
 DEST="$SUPPORT/tab2ping"
 
+# Messages in German if macOS is set to German, otherwise in English.
+case $(defaults read -g AppleLanguages 2>/dev/null | sed -n 2p) in *de*) DE=1 ;; *) DE= ;; esac
+say() { if [ -n "$DE" ]; then echo "$1"; else echo "$2"; fi; }
+
 if [ "$(uname -s)" != Darwin ]; then
-  echo "Der tab2ping-Helfer gibt es bisher nur für macOS." >&2
+  echo "The tab2ping helper is only available for macOS so far." >&2
   exit 1
 fi
 
@@ -30,12 +34,12 @@ browsers() {
 if [ "${1:-}" = --uninstall ]; then
   browsers | while IFS= read -r d; do rm -f "$d/$NAME.json"; done
   rm -rf "$DEST"
-  echo "tab2ping-Helfer entfernt."
+  say "tab2ping-Helfer entfernt." "tab2ping helper removed."
   exit 0
 fi
 
 if [ -z "$(browsers)" ]; then
-  echo "Kein unterstützter Browser gefunden (Brave, Chrome, Edge, Chromium)." >&2
+  say "Kein unterstützter Browser gefunden (Brave, Chrome, Edge, Chromium)." "No supported browser found (Brave, Chrome, Edge, Chromium)." >&2
   exit 1
 fi
 
@@ -44,7 +48,7 @@ TMP="$DEST/tab2ping-helper.download"
 trap 'rm -f "$TMP"' EXIT
 curl -fsSL "$URL" -o "$TMP"
 if [ "$(shasum -a 256 "$TMP" | cut -d' ' -f1)" != "$SHA256" ]; then
-  echo "Der heruntergeladene Helfer stimmt nicht mit der Prüfsumme überein; nichts installiert." >&2
+  say "Der heruntergeladene Helfer stimmt nicht mit der Prüfsumme überein; nichts installiert." "The downloaded helper does not match its checksum; nothing installed." >&2
   exit 1
 fi
 chmod 755 "$TMP"
@@ -61,6 +65,6 @@ browsers | while IFS= read -r d; do
   "allowed_origins": ["chrome-extension://$EXTENSION_ID/"]
 }
 EOF
-  echo "angemeldet: $d"
+  say "angemeldet: $d" "registered: $d"
 done
-echo "tab2ping-Helfer $VERSION installiert."
+say "tab2ping-Helfer $VERSION installiert." "tab2ping helper $VERSION installed."

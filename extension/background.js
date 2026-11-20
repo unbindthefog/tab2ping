@@ -167,7 +167,7 @@ chrome.runtime.onConnect.addListener(port => {
     }
     if (msg.type === 'hold') setStream('held', msg.host);  // ping window: AUTO off (null: on)
     if (msg.type === 'terminal' && msg.host) {
-      if (helperState !== 'ok') { port.postMessage(snapshot({ terminalError: 'Helfer nicht bereit' })); return; }
+      if (helperState !== 'ok') { port.postMessage(snapshot({ terminalError: 'notReady' })); return; }
       helper.postMessage({ cmd: 'terminal', host: msg.host, follow: !!msg.follow });
     }
   });

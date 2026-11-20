@@ -7,7 +7,7 @@ const port = chrome.runtime.connect({ name: 'window' });
 // References kept: once pinned, the elements live in the other window's document.
 const el = Object.fromEntries(['app', 'dot', 'host', 'follow', 'pin', 'log', 'sheet', 'style']
   .map(id => [id, document.getElementById(id)]));
-const LABELS = { up: 'Antwort', down: 'keine Antwort', error: 'Fehler' };
+const LABELS = { up: t('reply'), down: t('noReply'), error: t('error') };
 const MAX_LINES = 200;
 
 let auto = true;
@@ -57,7 +57,7 @@ port.onMessage.addListener(s => {
   const e = s.event;
   if (!e || e.id !== streamId()) return;
   el.dot.className = 'dot ' + e.state;
-  const time = new Date(e.at).toLocaleTimeString('de-DE');
+  const time = new Date(e.at).toLocaleTimeString(chrome.i18n.getUILanguage(), { hourCycle: 'h23' });
   const detail = e.state === 'up' ? ' ' + e.ms.toFixed(e.ms < 10 ? 1 : 0) + ' ms' : e.state === 'error' && e.text ? ': ' + esc(e.text) : '';
   // The host stands in the header; a change gets its own "→ host" line.
   line(e.state, `<span class="t">${time}</span> <span class="s">${LABELS[e.state]}${detail}</span>`);

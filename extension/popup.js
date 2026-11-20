@@ -11,10 +11,10 @@ $('command').textContent = INSTALL;
 $('copy').addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText(INSTALL);
-    $('copy').textContent = 'KOPIERT';
+    $('copy').textContent = t('copied');
     $('copy').classList.add('on');
   } catch {
-    $('copy').textContent = 'MARKIEREN UND KOPIEREN';
+    $('copy').textContent = t('copyManually');
   }
 });
 
@@ -28,7 +28,7 @@ function render(s) {
   helper = s.helper;
   host = s.icon?.host || null;
   const r = s.icon?.result;
-  $('host').textContent = host || 'Keine Webseite';
+  $('host').textContent = host || t('noWebPage');
   $('dot').className = 'dot ' + (r?.state || '');
   $('ms').textContent = r?.state === 'up' ? Math.round(r.ms) + ' ms' : r?.state === 'down' ? '–' : '';
   const usable = helper === 'ok' && !!host;
@@ -40,14 +40,14 @@ function render(s) {
   // Missing or too old: the same install line (it updates, too); disappears once the helper answers.
   $('install').hidden = helper !== 'missing' && helper !== 'outdated';
   $('installText').textContent = helper === 'outdated'
-    ? 'Der Helfer ist veraltet. Zum Aktualisieren einmal im Terminal ausführen:'
-    : 'Für den Ping braucht tab2ping einen kleinen Helfer. Einmal im Terminal ausführen:';
+    ? t('installOutdated')
+    : t('installNeeded');
   if (helper === 'missing' || helper === 'outdated') {
     $('note').textContent = '';
   } else if (terminalError) {
-    $('note').textContent = 'Terminal ließ sich nicht öffnen: ' + terminalError;
+    $('note').textContent = t('terminalFailed', terminalError === 'notReady' ? t('helperNotReady') : terminalError);
   } else {
-    $('note').textContent = r?.state === 'error' ? (r.text || 'Fehler') : '';
+    $('note').textContent = r?.state === 'error' ? (r.text || t('error')) : '';
   }
 }
 port.onMessage.addListener(render);
@@ -113,6 +113,6 @@ $('browser').addEventListener('click', async e => {
 $('terminal').addEventListener('click', () => {
   terminalError = null;
   port.postMessage({ type: 'terminal', host, follow: autos.autoTerminal });
-  $('terminalLamp').textContent = 'GEÖFFNET';
+  $('terminalLamp').textContent = t('opened');
   $('terminalLamp').className = 'lamp info';
 });
