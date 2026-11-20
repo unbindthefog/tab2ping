@@ -21,4 +21,8 @@ Ein echter Ping und das Öffnen von Terminal gehen nur über diesen Helfer (`hel
 - Test ohne Browser: `node tools/test-helper.mjs`.
 - Release vorbereiten: `tools/make-release.sh` legt Helfer und `install.sh` (Version und Prüfsumme eingesetzt) nach `dist/` und nennt den Befehl zum Veröffentlichen.
 
-Gestaltung: `extension/style.css` ist eine Kopie aus tab2tv; die mitgelieferte Schrift Tiny5 (`extension/fonts/tiny5/`) steht unter der SIL Open Font License 1.1.
+Gestaltung: `extension/style.css` ist eine Kopie aus tab2tv.
+
+## Lizenz
+
+MIT, siehe `LICENSE`. Ausgenommen ist die Schrift Tiny5 in `extension/fonts/tiny5/`, sie steht unter der SIL Open Font License 1.1.
